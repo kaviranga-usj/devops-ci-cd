@@ -1,27 +1,22 @@
 pipeline {
   agent any
 
-  environment {
-    DOCKER_BFLASK_IMAGE = 'your-repo/your-image:latest'
-    DOCKER_REGISTRY_CREDS = 'dockerhub-creds'
-  }
-
   stages {
     stage('Build') {
       steps {
         bat 'docker build -t myjava1 .'
-        bat 'docker tag myjava1 %DOCKER_BFLASK_IMAGE%'
+        bat  'docker tag myjava1 %DOCKER_BFLASK_IMAGE%'
       }
     }
     stage('Test') {
       steps {
-        bat 'docker run myjava1'
+        sh 'docker run myjava1'
       }
     }
     stage('Deploy') {
       steps {
         withCredentials([usernamePassword(credentialsId: "${DOCKER_REGISTRY_CREDS}", passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-          bat "echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin docker.io"
+        bat "echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin docker.io"
           bat 'docker push %DOCKER_BFLASK_IMAGE%'
         }
       }
@@ -30,8 +25,6 @@ pipeline {
   post {
     always {
       bat 'docker logout'
-      bat 'docker image rm myjava1 || exit 0'
-      bat "docker image rm %DOCKER_BFLASK_IMAGE% || exit 0"
     }
   }
 }
