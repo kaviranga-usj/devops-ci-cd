@@ -1,6 +1,11 @@
 pipeline {
   agent any
 
+  environment {
+    DOCKER_BFLASK_IMAGE = 'your-repo/your-image:latest'
+    DOCKER_REGISTRY_CREDS = 'dockerhub-creds'
+  }
+
   stages {
     stage('Build') {
       steps {
@@ -25,6 +30,8 @@ pipeline {
   post {
     always {
       bat 'docker logout'
+      bat 'docker image rm myjava1 || exit 0'
+      bat "docker image rm %DOCKER_BFLASK_IMAGE% || exit 0"
     }
   }
 }
